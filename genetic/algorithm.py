@@ -1,111 +1,106 @@
-from abc import ABC, abstractmethod
-
-
-
 import random
+from datetime import datetime
 from typing import List
-
+import numpy as np
 import listtools
 from config import Config
+from genetic.operators import OperatorsBase
 from genetic.chromosome import Chromosome
 
 
-class AlgorithmBase(ABC):
-    def __init__(self, *args):
-        super().__init__(*args)
-
-    @abstractmethod
-    def mutation(self, chromosome: Chromosome) -> Chromosome:
-        raise NotImplementedError('Mutation is not implemented!')
-
-    @abstractmethod
-    def crossover(self, parent1: Chromosome, parent2: Chromosome) -> Chromosome:
-        raise NotImplementedError('Crossover is not implemented!')
-
-    # Selekcja
-    @abstractmethod
-    def selection(self, fitness_values: List[float]) -> List[int]:
-        raise NotImplementedError('Selection is not implemented!')
+# Current simulation state
+class AlgorithmResult():
+    def __init__(self):
+        self.champion_chromosomes = []
+        self.max_values = []
+        self.avg_values = []
+        self.stds = []
+        self.totalTime = 0.0
+        self.current_population = None
 
 
-class GeneticAlgorithmImpl(AlgorithmBase):
-    def __init__(self, config: Config, *args):
-        super().__init__(*args)
+class GeneticAlgorithm:
+    def __init__(self, config: Config, operators: OperatorsBase):
         self.config = config
+        self.operators = operators
+        self.population: List[Chromosome] = []
+        self.fitness_values: List[float] = []
 
-    # Mutation
-    def mutation(self, chromosome: Chromosome) -> Chromosome:
+    def run(self) -> AlgorithmResult:
+        MAX_RUNS = self.config['max_runs']
+        result = AlgorithmResult()
+
+        dt_start = datetime.timestamp(datetime.now())
+
+        self.generate_initial_population()
+
+        # symulujemy kolejne iteracje, zapisując wyniki każdej z nich
+        for i in range(MAX_RUNS):
+
+            # może już przetwarzać sobie następne, jeśli to nie było ostatnie
+            if i < MAX_RUNS - 1:
+                self.next_generation()
+
+            std = np.std(self.fitness_values)
+
+            # add the champion chromosome to a list of champions for plotting
+            index_of_champion = listtools.max_index_in_list(self.fitness_values)
+            result.champion_chromosomes.append(self.population[index_of_champion])
+
+            # add the max/average values to lists for plotting
+            result.max_values.append(listtools.max_value_in_list(self.fitness_values))
+            result.avg_values.append(listtools.avgList(self.fitness_values))
+            result.stds.append(std)
+
+            result.current_population = self.population
+            result.iteration = i
+
+        dt_end = datetime.timestamp(datetime.now())
+        result.totalTime = dt_end - dt_start
+
+        return result
+
+    def generate_initial_population(self) -> None:
         random.seed()
-        max_P_value = self.config['max_gain_value']
-        max_I_value = self.config['max_integral_value']
-        max_D_value = self.config['max_derivative_value']
+        self.population = []
+        for _ in range(self.config['population_size']):
+            self.population.append(Chromosome(
+                random.random() * self.config['max_gain_value'],
+                random.random() * self.config['max_integral_value'],
+                random.random() * self.config['max_derivative_value']
+            ))
 
-        if random.random() < self.config['mutation_probability'] / 3:
-            if random.random() < 1/2:
-                chromosome.x1 = chromosome.x1 + random.random() / 10.0 * max_P_value
-            else:
-                chromosome.x1 = chromosome.x1 - random.random() / 10.0 * max_P_value
-        if chromosome.x1 < 0 or chromosome.x1 > max_P_value:
-            chromosome.x1 = random.random() * max_P_value
+        self.calculate_fitness()
 
-        elif random.random() < self.config['mutation_probability'] * 2 / 3:
-            if random.random() < 1 / 2:
-                chromosome.x2 = chromosome.x2 + random.random() / 10.0 * max_I_value
-            else:
-                chromosome.x2 = chromosome.x2 - random.random() / 10.0 * max_I_value
-        if chromosome.x2 < 0 or chromosome.x2 > max_I_value:
-            chromosome.x2 = random.random() * max_I_value
+    def calculate_fitness(self) -> None:
+        self.fitness_values = []
+        for chromosomeIndex in range(self.config['population_size']):
+            self.fitness_values.append(self.get_fitness_for_chromosome(chromosomeIndex))
 
-        elif random.random() < self.config['mutation_probability']:
-            if random.random() < 1 / 2:
-                chromosome.x3 = chromosome.x3 + random.random() / 10.0 * max_D_value
-            else:
-                chromosome.x3 = chromosome.x3 - random.random() / 10.0 * max_D_value
-        if chromosome.x3 < 0 or chromosome.x3 > max_D_value:
-            chromosome.x3 = random.random() * max_D_value
+    def next_generation(self) -> None:
+        # wyznacz przystosowanie dla pokolenia
+        # wyselekcjonuj rodzicow
+        # krzyzuj ich
+        # ewentualne mutacje
+        new_population = []
 
-        return chromosome
+        # generate a new population based on fitness values
+        for chromosomeIndex in range(self.config['population_size']):
+            # selection - find two parents of new chromosome
+            parent_indices = self.operators.selection(self.fitness_values)
 
-    # Crossover
-    def crossover(self, parent1: Chromosome, parent2: Chromosome) -> Chromosome:
-        random.seed()
+            # crossover - generate a child based on
+            chromosome = self.operators.crossover(self.population[parent_indices[0]], self.population[parent_indices[1]])
 
-        if random.random() > self.config['crossover_rate']:
-            return parent1
-        else:
-            # random combination crossover
-            number = random.random()
-            if number < 1.0 / 6:
-                return Chromosome(parent1.x1, parent2.x2, parent2.x3)
-            elif number < 2.0 / 6:
-                return Chromosome(parent2.x1, parent1.x2, parent1.x3)
-            elif number < 3.0 / 6:
-                return Chromosome(parent1.x1, parent2.x2, parent1.x3)
-            elif number < 4.0 / 6:
-                return Chromosome(parent1.x1, parent1.x2, parent2.x3)
-            elif number < 5.0 / 6:
-                return Chromosome(parent2.x1, parent1.x2, parent2.x3)
-            else:
-                return Chromosome(parent2.x1, parent2.x2, parent2.x3)
+            # mutation
+            chromosome = self.operators.mutation(chromosome)
+            new_population.append(chromosome)
 
-    # Selection
-    def selection(self, fitness_values: List[float]) -> List[int]:
+        self.population = new_population
+        self.calculate_fitness()
 
-        probabilities = listtools.normListSumTo(fitness_values, 1)
-        parent_indices = []
-        random.seed()
-        parent1_probability = random.random()
-        parent2_probability = random.random()
-
-        summ = 0
-        for i in range(self.config['population_size']):
-            if len(parent_indices) == 2:
-                break
-            next_sum = summ + probabilities[i]
-            if next_sum >= parent1_probability >= summ:
-                parent_indices.append(i)
-            if next_sum >= parent2_probability >= summ:
-                parent_indices.append(i)
-            summ = next_sum
-        return parent_indices
-
+    # Funkcja przystosowania dla pojedynczego chromosomu (osobnika)
+    def get_fitness_for_chromosome(self, chromosome_index: int) -> float:
+        chromosome = self.population[chromosome_index]
+        f = (chromosome.x1 - 0.2) ** 2 + (chromosome.x2 - 0.8) ** 2 + (chromosome.x3 - 0.5) ** 2
+        return 1 - f    # Maksymalizujemy wiec robimy fitness = 1-f(x)
