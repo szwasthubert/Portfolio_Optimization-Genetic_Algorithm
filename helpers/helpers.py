@@ -1,5 +1,4 @@
-import math
-
+#!/usr/bin/env python3
 
 def calculateMean(dataframe):
     return dataframe.mean(axis=0, skipna=True)
