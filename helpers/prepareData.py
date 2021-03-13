@@ -17,12 +17,14 @@ def parse_crypto():
 
 
 def parse_investing(type: str, names: List):
-    (pd.DataFrame({name: pd.read_csv(f"../raw_data/{type}/{name}.csv", parse_dates=True, index_col=0)['Open'] for name in names})[::-1]).to_csv(f"../data/{type}.csv")
+    (pd.DataFrame({name: pd.read_csv(f"../raw_data/{type}/{name}.csv", parse_dates=True, index_col=0)['Open'] for name in names})).to_csv(f"../data/{type}.csv")
 
 
 parse_crypto()
 
-investments = {"commodities": ["gold", "silver", "platinum", "oil"]}
+investments = {"commodities": ["gold", "silver", "platinum", "oil"],
+	       "currencies": ["USD_CHF", "USD_CNY", "USD_EUR", "USD_GBP", "USD_PLN"],
+	       "indices": ["DAX", "Dow Jones", "NASDAQ Composite", "S&P 500"]}
 
 for type, names in investments.items():
 	parse_investing(type, names)
