@@ -6,10 +6,11 @@ from datetime import datetime
 import listtools
 from config import config as cfg
 from genetic.operators import OperatorsImpl
-from genetic.algorithm import GeneticAlgorithm
+from genetic.algorithm import GeneticAlgorithm, AlgorithmParams
 
+params_crypto = AlgorithmParams(1,2,3,4)
 
-simulation = GeneticAlgorithm(cfg, OperatorsImpl(cfg))
+simulation = GeneticAlgorithm(cfg, OperatorsImpl(cfg), params_crypto)
 results = simulation.run()
 
 best_index = listtools.max_index_in_list(results.max_values)

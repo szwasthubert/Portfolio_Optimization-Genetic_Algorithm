@@ -9,7 +9,7 @@ from genetic.chromosome import Chromosome
 
 
 # Current simulation state
-class AlgorithmResult():
+class AlgorithmResult:
     def __init__(self):
         self.champion_chromosomes = []
         self.max_values = []
@@ -18,11 +18,19 @@ class AlgorithmResult():
         self.totalTime = 0.0
         self.current_population = None
 
+class AlgorithmParams:
+    def __init__(self, lam, R, V, chromosome_size):
+        self.lam = lam
+        self.R = R
+        self.V = V
+        self.chromosome_size = chromosome_size
+
 
 class GeneticAlgorithm:
-    def __init__(self, config: Config, operators: OperatorsBase):
+    def __init__(self, config: Config, operators: OperatorsBase, params: AlgorithmParams):
         self.config = config
         self.operators = operators
+        self.params = params
         self.population: List[Chromosome] = []
         self.fitness_values: List[float] = []
 
