@@ -18,11 +18,10 @@ def parse_crypto():
 
 def parse_investing(type: str, names: List):
     df = pd.DataFrame({name: pd.read_csv(f"../raw_data/{type}/{name}.csv", 
-    					 parse_dates=True,
-    					 index_col=0)['Open'] for name in names})
-    print(df.head())
-    (df.fillna(method="ffill").fillna(method="bfill")).to_csv(f"../data/{type}.csv")
-    
+    		       parse_dates=True, 
+    		       index_col=0)['Open'] for name in names})
+    df.fillna(method="ffill").fillna(method="bfill").to_csv(f"../data/{type}.csv")
+
 
 parse_crypto()
 
