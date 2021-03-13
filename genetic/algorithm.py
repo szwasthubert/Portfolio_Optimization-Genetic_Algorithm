@@ -1,6 +1,6 @@
 import random
 from datetime import datetime
-from typing import List
+from typing import List, Dict
 import numpy as np
 import listtools
 from config import Config
@@ -11,19 +11,33 @@ from genetic.chromosome import Chromosome
 # Current simulation state
 class AlgorithmResult:
     def __init__(self):
-        self.champion_chromosomes = []
+        self.champion_chromosomes: List[Chromosome] = []
         self.max_values = []
         self.avg_values = []
         self.stds = []
         self.totalTime = 0.0
         self.current_population = None
+        self.gene_names = []
+
+    def best_iteration(self) -> int:
+        """
+        :return: zero-based best generation index
+        """
+        return listtools.max_index_in_list(self.max_values)
+
+    def get_solution(self) -> Dict[str, float]:
+        best_index = self.best_iteration()
+        best_chromosome = self.champion_chromosomes[best_index]
+        return dict(zip(self.gene_names, best_chromosome.portfolio))
+
 
 class AlgorithmParams:
-    def __init__(self, lam: float, R: np.ndarray, V: np.ndarray, chromosome_size: int):
+    def __init__(self, lam: float, R: np.ndarray, V: np.ndarray, chromosome_size: int, gene_names: List[str]):
         self.lam = lam
         self.R = R
         self.V = V
         self.chromosome_size = chromosome_size
+        self.gene_names = gene_names
 
 
 class GeneticAlgorithm:
@@ -37,6 +51,7 @@ class GeneticAlgorithm:
     def run(self) -> AlgorithmResult:
         MAX_RUNS = self.config['max_runs']
         result = AlgorithmResult()
+        result.gene_names = self.params.gene_names
 
         dt_start = datetime.timestamp(datetime.now())
 
