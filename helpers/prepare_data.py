@@ -9,20 +9,19 @@ def parse_crypto():
     df_litecoin = pd.read_csv("../raw_data/crypto/litecoin.csv", parse_dates=True, index_col=0)
     df_XRP = pd.read_csv("../raw_data/crypto/xrp.csv", parse_dates=True, index_col=0)
 
-    pd.DataFrame({'bitcoin': df_bitcoin['open'],
-                    'ethereum': df_etherum['open'],
-                    'litecoin':df_litecoin['open'],
-                    'xrp':df_XRP['open']},
+    pd.DataFrame({'bitcoin': df_bitcoin['open'], 
+                    'ethereum': df_etherum['open'], 
+                    'litecoin':df_litecoin['open'], 
+                    'xrp':df_XRP['open']}, 
                 index=df_bitcoin.index).to_csv("../data/crypto.csv")
 
 
 def parse_investing(type: str, names: List):
     df = pd.DataFrame({name: pd.read_csv(f"../raw_data/{type}/{name}.csv", 
-    					 parse_dates=True,
-    					 index_col=0)['Open'] for name in names})
-    print(df.head())
-    (df.fillna(method="ffill").fillna(method="bfill")).to_csv(f"../data/{type}.csv")
-    
+    		       parse_dates=True, 
+    		       index_col=0)['Open'] for name in names})
+    df.fillna(method="ffill").fillna(method="bfill").to_csv(f"../data/{type}.csv")
+
 
 parse_crypto()
 
@@ -32,3 +31,4 @@ investments = {"commodities": ["gold", "silver", "platinum", "oil"],
 
 for type, names in investments.items():
 	parse_investing(type, names)
+
