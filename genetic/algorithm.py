@@ -19,7 +19,7 @@ class AlgorithmResult:
         self.current_population = None
 
 class AlgorithmParams:
-    def __init__(self, lam, R, V, chromosome_size):
+    def __init__(self, lam: float, R: np.ndarray, V: np.ndarray, chromosome_size: int):
         self.lam = lam
         self.R = R
         self.V = V
@@ -73,9 +73,7 @@ class GeneticAlgorithm:
         self.population = []
         for _ in range(self.config['population_size']):
             self.population.append(Chromosome(
-                random.random() * self.config['max_gain_value'],
-                random.random() * self.config['max_integral_value'],
-                random.random() * self.config['max_derivative_value']
+                np.random.rand(self.params.chromosome_size)
             ))
 
         self.calculate_fitness()
@@ -109,6 +107,6 @@ class GeneticAlgorithm:
 
     # Funkcja przystosowania dla pojedynczego chromosomu (osobnika)
     def get_fitness_for_chromosome(self, chromosome_index: int) -> float:
-        chromosome = self.population[chromosome_index]
-        f = (chromosome.x1 - 0.2) ** 2 + (chromosome.x2 - 0.8) ** 2 + (chromosome.x3 - 0.5) ** 2
-        return 1 - f    # Maksymalizujemy wiec robimy fitness = 1-f(x)
+        x = self.population[chromosome_index].portfolio
+        # lambda * R' * x - (1 - lambda) * x * v * x'
+        return self.params.lam * (self.params.R @ x) - (1 - self.params.lam) * (x @ self.params.V @ np.transpose(x))

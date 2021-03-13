@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 import random
+import numpy as np
 from typing import List
 
 import listtools
@@ -34,59 +35,39 @@ class OperatorsImpl(OperatorsBase):
     # Mutation
     def mutation(self, chromosome: Chromosome) -> Chromosome:
         random.seed()
-        max_P_value = self.config['max_gain_value']
-        max_I_value = self.config['max_integral_value']
-        max_D_value = self.config['max_derivative_value']
 
-        if random.random() < self.config['mutation_probability'] / 3:
-            if random.random() < 1/2:
-                chromosome.x1 = chromosome.x1 + random.random() / 10.0 * max_P_value
+        if random.random() > self.config['mutation_probability']:
+            return chromosome
+
+        new_gens = []
+        for gen in chromosome.portfolio:
+            if random.random() <= self.config['mutation_gen_probability']:
+                mut_val = self.config['mutation_coefficient']
+                coeff = random.random() * mut_val - mut_val / 2
+                new_gens += [max(0.0, gen + coeff)]
             else:
-                chromosome.x1 = chromosome.x1 - random.random() / 10.0 * max_P_value
-        if chromosome.x1 < 0 or chromosome.x1 > max_P_value:
-            chromosome.x1 = random.random() * max_P_value
+                new_gens += [gen]
 
-        elif random.random() < self.config['mutation_probability'] * 2 / 3:
-            if random.random() < 1 / 2:
-                chromosome.x2 = chromosome.x2 + random.random() / 10.0 * max_I_value
-            else:
-                chromosome.x2 = chromosome.x2 - random.random() / 10.0 * max_I_value
-        if chromosome.x2 < 0 or chromosome.x2 > max_I_value:
-            chromosome.x2 = random.random() * max_I_value
-
-        elif random.random() < self.config['mutation_probability']:
-            if random.random() < 1 / 2:
-                chromosome.x3 = chromosome.x3 + random.random() / 10.0 * max_D_value
-            else:
-                chromosome.x3 = chromosome.x3 - random.random() / 10.0 * max_D_value
-        if chromosome.x3 < 0 or chromosome.x3 > max_D_value:
-            chromosome.x3 = random.random() * max_D_value
-
-        return chromosome
+        return Chromosome(np.array(new_gens))
 
     # Crossover
     def crossover(self, parent1: Chromosome, parent2: Chromosome) -> Chromosome:
         random.seed()
 
         if random.random() > self.config['crossover_rate']:
-            return parent1
+            if random.random() < 0.5:
+                return parent1
+            return parent2
         else:
             # random combination crossover
-            number = random.random()
-            if number < 1.0 / 6:
-                return Chromosome(parent1.x1, parent2.x2, parent2.x3)
-            elif number < 2.0 / 6:
-                return Chromosome(parent2.x1, parent1.x2, parent1.x3)
-            elif number < 3.0 / 6:
-                return Chromosome(parent1.x1, parent2.x2, parent1.x3)
-            elif number < 4.0 / 6:
-                return Chromosome(parent1.x1, parent1.x2, parent2.x3)
-            elif number < 5.0 / 6:
-                return Chromosome(parent2.x1, parent1.x2, parent2.x3)
-            else:
-                return Chromosome(parent2.x1, parent2.x2, parent2.x3)
+            mask = np.random.choice(a=[False, True], size=len(parent1.portfolio), p=[.5, .5])
+            child = []
+            for i, entry in enumerate(mask):
+                child += [parent1.portfolio[i] if entry else parent2.portfolio[i]]
 
-    # Selection
+            return Chromosome(np.array(child))
+
+    # Selekcja metodą koła ruletki
     def selection(self, fitness_values: List[float]) -> List[int]:
 
         probabilities = listtools.normListSumTo(fitness_values, 1)

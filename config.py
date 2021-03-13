@@ -7,11 +7,10 @@ config: Config = {
     'population_size' : 50,
     'max_runs': 200,
 
-    'max_gain_value' : 1,
-    'max_integral_value': 1,
-    'max_derivative_value': 1,
-
     # genetic config
     'mutation_probability': .1,
     'crossover_rate': .9,
+
+    'mutation_gen_probability': .5,
+    'mutation_coefficient': .01,
 }
