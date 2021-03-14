@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import math
 import pandas as pd
-import os, os.path
+import os
 from typing import Dict, List, Tuple
+
 
 def calculate_mean(dataframe: pd.DataFrame) -> pd.DataFrame:
     return dataframe.mean(axis=0, skipna=True)
@@ -25,7 +26,7 @@ def expected_portfolio_return(portfolioWeightsDict: Dict, meanReturnsDataset: pd
 
 def portfolio_std(portfolioWeightsDict: Dict, covarianceDataset: pd.DataFrame) -> float:
     n = len(portfolioWeightsDict)
-    portfolioKeys = portfolioWeightsDict.keys()
+    portfolioKeys = list(portfolioWeightsDict.keys())
     variance = 0
     for key, value in portfolioWeightsDict.items():
         variance += covarianceDataset.loc[key][key] * value ** 2
@@ -38,15 +39,18 @@ def portfolio_std(portfolioWeightsDict: Dict, covarianceDataset: pd.DataFrame) -
     return math.sqrt(variance)
 
 
-def risk_return_dict_generator(instrumentSet: str, portfolioWeightsDicts: List[Dict], meanReturnsDataset: pd.DataFrame, covarianceDataset: pd.DataFrame) -> Dict[str,List[Tuple]]:
-    return {instrumentSet: [(portfolio_std(portfolioWeightsDict, covarianceDataset), expected_portfolio_return(portfolioWeightsDict, meanReturnsDataset)) for portfolioWeightsDict in portfolioWeightsDicts]}
+def risk_return_dict_generator(instrumentSet: str, portfolioWeightsDicts: List[Dict], meanReturnsDataset: pd.DataFrame,
+                               covarianceDataset: pd.DataFrame) -> Dict[str, List[Tuple]]:
+    return {instrumentSet: [(portfolio_std(portfolioWeightsDict, covarianceDataset),
+                             expected_portfolio_return(portfolioWeightsDict, meanReturnsDataset)) for
+                            portfolioWeightsDict in portfolioWeightsDicts]}
 
 
 def fitfun(x, a, b, c, d):
     """
     Hyperbolic curve equation
     """
-    return d+a/(b*x+c)
+    return d + a / (b * x + c)
 
 
 def get_num_files_in_dir(path: str) -> int:
