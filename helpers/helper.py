@@ -54,4 +54,6 @@ def fitfun(x, a, b, c, d):
 
 
 def get_num_files_in_dir(path: str) -> int:
+    if not os.path.exists(path):
+        os.makedirs(path)
     return len([name for name in os.listdir(path) if os.path.isfile(name)])
