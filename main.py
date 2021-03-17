@@ -6,7 +6,7 @@ from genetic.algorithm import GeneticAlgorithm, AlgorithmParams, AlgorithmResult
 from helpers import plotters as plot
 import matplotlib.pyplot as plt
 
-# przykladowe liczby z dupy wziete
+# przykladowe liczby z kosmosu wziete
 params_crypto = AlgorithmParams(lam=0.67,
                                 R=np.array([1,2,3,4]),
                                 V=np.ones(shape=(4,4)),
