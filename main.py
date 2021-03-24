@@ -54,26 +54,29 @@ def do_without_threading(instruments: List[str]):
 
 
 # Kazde wywolanie tej funkcji to osobny watek
-def single_thread(instrument: str, queue: mp.Queue, R: np.ndarray, V: np.ndarray, chromosome_size: int, gene_names: List[str]):
+def single_thread(instrument: str, R: np.ndarray, V: np.ndarray, chromosome_size: int, gene_names: List[str]):
+    print('Started thread for instrument:', instrument)
     start_time = datetime.timestamp(datetime.now())
     portfolioWeightsDicts = []
     for Lambda in np.linspace(0, 1, 2):
         solution = single_genetic_pass(Lambda, R, V, chromosome_size, gene_names)
         portfolioWeightsDicts.append(solution)
 
-    queue.put({instrument: portfolioWeightsDicts})
+    #queue.put({instrument: portfolioWeightsDicts})
 
     end_time = datetime.timestamp(datetime.now())
     elapsed = end_time - start_time
     print('Finished', instrument, '- it took {:.2f}s'.format(elapsed))
+
+    return portfolioWeightsDicts
 
 
 def do_with_threading(instruments: List[str]):
     portfolioWeightsDicts = []
     RVMatrices = {}
 
-    threads = []
-    queue = mp.Queue()
+    threadResults = {}
+    pool = mp.Pool()
     start_time = datetime.timestamp(datetime.now())
     for instrument in instruments:
         data = pd.read_csv("./data/{0}.csv".format(instrument), parse_dates=True, index_col=0)
@@ -85,28 +88,20 @@ def do_with_threading(instruments: List[str]):
 
         # argumenty przekazane do funkcji single_thread() musza byc slownikiem
         kw = {'instrument': instrument,
-              'queue': queue,
               'R': R, 'V': V,
               'chromosome_size': chromosome_size,
               'gene_names': gene_names}
 
-        print('Starting thread for instrument:', instrument)
-        th = mp.Process(target=single_thread, kwargs=kw, name=instrument)
-        th.start()
-        threads.append(th)
+        print('Creating thread for instrument:', instrument)
+        threadResults[instrument] = pool.apply_async(single_thread, kwds=kw)
 
     # Wait for all threads to finish
-    for th in threads:
-        th.join()
-
+    pool.close()
+    pool.join()
     print('All threads finished')
 
-    # Magic here
-    instrument_dicts = [queue.get() for _ in threads]
-    instrument_dicts = {k: v for d in instrument_dicts for k, v in d.items()}
-
     for instrument in instruments:
-        portfolioWeightsDicts += instrument_dicts[instrument]
+        portfolioWeightsDicts += threadResults[instrument].get()
 
     end_time = datetime.timestamp(datetime.now())
     print('Total computation time: {:.2f}s'.format(end_time - start_time))
