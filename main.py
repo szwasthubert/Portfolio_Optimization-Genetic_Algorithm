@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import listtools
 import numpy as np
 from config import config as cfg, Config

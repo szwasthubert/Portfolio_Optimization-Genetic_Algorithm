@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 
 def avgList(L):
     return sum(L)/len(L)*1.0
