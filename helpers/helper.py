@@ -5,6 +5,10 @@ import os
 from typing import Dict, List, Tuple
 
 
+def calculate_diff(dataframe: pd.DataFrame) -> pd.DataFrame:
+    return dataframe.diff().dropna()
+
+
 def calculate_mean(dataframe: pd.DataFrame) -> pd.DataFrame:
     return dataframe.mean(axis=0, skipna=True)
 
@@ -15,6 +19,10 @@ def calculate_std(dataframe: pd.DataFrame) -> pd.DataFrame:
 
 def calculate_covariance_matrix(dataframe: pd.DataFrame) -> pd.DataFrame:
     return dataframe.cov()
+
+
+def calculate_RV(dataframe: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    return calculate_mean(calculate_diff(dataframe)), calculate_covariance_matrix(dataframe)
 
 
 def expected_portfolio_return(portfolioWeightsDict: Dict, meanReturnsDataset: pd.DataFrame) -> float:
