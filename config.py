@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import multiprocessing
 from typing import Dict, Any
 
 Config = Dict[str, Any]  # definicja typu
@@ -15,4 +15,7 @@ config: Config = {
 
     'mutation_gen_probability': .5,
     'mutation_coefficient': .01,
+
+    'num_threads': multiprocessing.cpu_count(),
+    'threading_enabled': True,
 }
