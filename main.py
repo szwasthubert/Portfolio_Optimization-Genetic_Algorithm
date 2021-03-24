@@ -55,12 +55,17 @@ def do_without_threading(instruments: List[str]):
 
 # Kazde wywolanie tej funkcji to osobny watek
 def single_thread(instrument: str, queue: mp.Queue, R: np.ndarray, V: np.ndarray, chromosome_size: int, gene_names: List[str]):
+    start_time = datetime.timestamp(datetime.now())
     portfolioWeightsDicts = []
     for Lambda in np.linspace(0, 1, 2):
         solution = single_genetic_pass(Lambda, R, V, chromosome_size, gene_names)
         portfolioWeightsDicts.append(solution)
 
     queue.put({instrument: portfolioWeightsDicts})
+
+    end_time = datetime.timestamp(datetime.now())
+    elapsed = end_time - start_time
+    print('Finished', instrument, '- it took {:.2f}s'.format(elapsed))
 
 
 def do_with_threading(instruments: List[str]):
@@ -69,7 +74,6 @@ def do_with_threading(instruments: List[str]):
 
     threads = []
     queue = mp.Queue()
-    timers = {}
     start_time = datetime.timestamp(datetime.now())
     for instrument in instruments:
         data = pd.read_csv("./data/{0}.csv".format(instrument), parse_dates=True, index_col=0)
@@ -88,15 +92,14 @@ def do_with_threading(instruments: List[str]):
 
         print('Starting thread for instrument:', instrument)
         th = mp.Process(target=single_thread, kwargs=kw, name=instrument)
-        timers[instrument] = datetime.timestamp(datetime.now())
         th.start()
         threads.append(th)
 
+    # Wait for all threads to finish
     for th in threads:
         th.join()
-        end_time = datetime.timestamp(datetime.now())
-        elapsed = end_time - timers[th.name]
-        print('Finished thread', th.name, 'it took {:.2f}s'.format(elapsed))
+
+    print('All threads finished')
 
     # Magic here
     instrument_dicts = [queue.get() for _ in threads]
