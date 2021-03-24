@@ -29,7 +29,7 @@ def single_genetic_pass(Lambda: float, R: np.ndarray, V: np.ndarray, chromosome_
 
 
 # Po staremu, bez wielowatkowosci
-def do_without_threading(instruments: List[str]):
+def do_without_threading(instruments: List[str], lambda_count: int):
     portfolioWeightsDicts = []
     RVMatrices = {}
 
@@ -43,7 +43,7 @@ def do_without_threading(instruments: List[str]):
         chromosome_size = R.shape[0]
         gene_names = data.columns.values
 
-        for Lambda in np.linspace(0, 1, 2):
+        for Lambda in np.linspace(0, 1, lambda_count):
             solution = single_genetic_pass(Lambda, R, V, chromosome_size, gene_names)
             portfolioWeightsDicts.append(solution)
 
@@ -54,11 +54,11 @@ def do_without_threading(instruments: List[str]):
 
 
 # Kazde wywolanie tej funkcji to osobny watek
-def single_thread(instrument: str, R: np.ndarray, V: np.ndarray, chromosome_size: int, gene_names: List[str]):
+def single_thread(instrument: str, R: np.ndarray, V: np.ndarray, chromosome_size: int, gene_names: List[str], lambda_count: int):
     print('Started thread for instrument:', instrument)
     start_time = datetime.timestamp(datetime.now())
     portfolioWeightsDicts = []
-    for Lambda in np.linspace(0, 1, 2):
+    for Lambda in np.linspace(0, 1, lambda_count):
         solution = single_genetic_pass(Lambda, R, V, chromosome_size, gene_names)
         portfolioWeightsDicts.append(solution)
 
@@ -71,7 +71,7 @@ def single_thread(instrument: str, R: np.ndarray, V: np.ndarray, chromosome_size
     return portfolioWeightsDicts
 
 
-def do_with_threading(instruments: List[str]):
+def do_with_threading(instruments: List[str], lambda_count: int):
     portfolioWeightsDicts = []
     RVMatrices = {}
 
@@ -90,7 +90,8 @@ def do_with_threading(instruments: List[str]):
         kw = {'instrument': instrument,
               'R': R.to_numpy(), 'V': V.to_numpy(),
               'chromosome_size': chromosome_size,
-              'gene_names': gene_names}
+              'gene_names': gene_names,
+              'lambda_count': lambda_count}
 
         print('Creating thread for instrument:', instrument)
         threadResults[instrument] = pool.apply_async(single_thread, kwds=kw)
@@ -112,10 +113,11 @@ def do_with_threading(instruments: List[str]):
 if __name__ == '__main__':
     pp = pprint.PrettyPrinter(indent=2)
 
-    instruments = ["crypto", "currencies"]
+    lambda_counts = 20
+    instruments = ["commodities", "indices", 'currencies','crypto']
 
     portfolioWeightsDicts, RVMatrices = \
-        do_with_threading(instruments) if cfg['threading_enabled'] else do_without_threading(instruments)
+        do_with_threading(instruments, lambda_counts) if cfg['threading_enabled'] else do_without_threading(instruments)
 
     '''
     print('Best iteration:', results.best_iteration())
@@ -133,6 +135,8 @@ if __name__ == '__main__':
     dict_of_lists = dict()
     for i in range(len(instruments)):
         dict_of_lists[instruments[i]] = portfolioWeightsDicts[i*lambda_counts:(i+1)*lambda_counts]
+
+    print(dict_of_lists)
 
     list_of_plotter_dicts = []
     for instrument, list_of_returns in dict_of_lists.items():
