@@ -23,7 +23,7 @@ def parse_crypto():
                          index_col=0)
 
     if not os.path.isdir(data_path):
-        os.os.mkdir(data_path)
+        os.mkdir(data_path)
 
     pd.DataFrame({'bitcoin': df_bitcoin['open'], 
                   'ethereum': df_etherum['open'], 
@@ -39,7 +39,7 @@ def parse_investing(type: str, names: List):
     		          index_col=0,
                       thousands=',')['Open'] for name in names})
     if not os.path.isdir(data_path):
-        os.os.mkdir(data_path)
+        os.mkdir(data_path)
     df.fillna(method="ffill").fillna(method="bfill").to_csv(os.path.join(data_path, 
                                                                          f"{type}.csv"))
 
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
     parse_crypto()
     investments = {"commodities": ["gold", "silver", "platinum", "oil"],
-                   "currencies": ["USD_CHF", "USD_CNY", "USD_EUR", "USD_GBP", "USD_PLN"],
+                   "currencies": ["USD2CHF", "USD2CNY", "USD2EUR", "USD2GBP", "USD2PLN"],
                    "indices": ["DAX", "Dow Jones", "NASDAQ Composite", "S&P 500"]}
 
     for type, names in investments.items():
