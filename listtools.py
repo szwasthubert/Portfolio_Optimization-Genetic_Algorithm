@@ -2,6 +2,8 @@
 
 def avgList(L):
     return sum(L)/len(L)*1.0
+import random
+from functools import reduce
 
 
 def normList(L, normalizeTo=1):
