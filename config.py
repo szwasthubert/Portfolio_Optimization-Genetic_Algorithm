@@ -16,6 +16,5 @@ config: Config = {
     'mutation_gen_probability': .5,
     'mutation_coefficient': .01,
 
-    'num_threads': multiprocessing.cpu_count(),
     'threading_enabled': True,
 }

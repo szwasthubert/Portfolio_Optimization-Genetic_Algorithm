@@ -12,6 +12,7 @@ from helpers import helper
 import matplotlib.pyplot as plt
 import multiprocessing as mp
 import pprint
+from datetime import datetime
 
 
 # Leci pojedynczy przebieg genetycznego
@@ -31,6 +32,9 @@ def single_genetic_pass(Lambda: float, R: np.ndarray, V: np.ndarray, chromosome_
 def do_without_threading(instruments: List[str]):
     portfolioWeightsDicts = []
     RVMatrices = {}
+
+    start_time = datetime.timestamp(datetime.now())
+
     for instrument in instruments:
         data = pd.read_csv("./data/{0}.csv".format(instrument), parse_dates=True, index_col=0)
         R, V = helper.calculate_RV(data)
@@ -42,6 +46,9 @@ def do_without_threading(instruments: List[str]):
         for Lambda in np.linspace(0, 1, 2):
             solution = single_genetic_pass(Lambda, R, V, chromosome_size, gene_names)
             portfolioWeightsDicts.append(solution)
+
+    end_time = datetime.timestamp(datetime.now())
+    print('Total computation time: {:.2f}s'.format(end_time - start_time))
 
     return portfolioWeightsDicts, RVMatrices
 
@@ -62,6 +69,8 @@ def do_with_threading(instruments: List[str]):
 
     threads = []
     queue = mp.Queue()
+    timers = {}
+    start_time = datetime.timestamp(datetime.now())
     for instrument in instruments:
         data = pd.read_csv("./data/{0}.csv".format(instrument), parse_dates=True, index_col=0)
         R, V = helper.calculate_RV(data)
@@ -79,12 +88,15 @@ def do_with_threading(instruments: List[str]):
 
         print('Starting thread for instrument:', instrument)
         th = mp.Process(target=single_thread, kwargs=kw, name=instrument)
+        timers[instrument] = datetime.timestamp(datetime.now())
         th.start()
         threads.append(th)
 
     for th in threads:
-        print('Finished thread', th)
         th.join()
+        end_time = datetime.timestamp(datetime.now())
+        elapsed = end_time - timers[th.name]
+        print('Finished thread', th.name, 'it took {:.2f}s'.format(elapsed))
 
     # Magic here
     instrument_dicts = [queue.get() for _ in threads]
@@ -92,6 +104,9 @@ def do_with_threading(instruments: List[str]):
 
     for instrument in instruments:
         portfolioWeightsDicts += instrument_dicts[instrument]
+
+    end_time = datetime.timestamp(datetime.now())
+    print('Total computation time: {:.2f}s'.format(end_time - start_time))
 
     return portfolioWeightsDicts, RVMatrices
 
