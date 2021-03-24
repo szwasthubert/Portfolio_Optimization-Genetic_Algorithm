@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-import numpy as np
-import pandas as pd
 import os
 from typing import Dict, List, Tuple
+import numpy as np
+import pandas as pd
 
 
 def calculate_diff(dataframe: pd.DataFrame) -> pd.DataFrame:
@@ -19,7 +19,7 @@ def calculate_std(dataframe: pd.DataFrame) -> pd.DataFrame:
 
 
 def calculate_normalized_covariance_matrix(dataframe: pd.DataFrame) -> pd.DataFrame:
-    return dataframe.corr()
+    return dataframe.cov()
 
 
 def calculate_RV(dataframe: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -41,8 +41,8 @@ def portfolio_std(portfolioWeightsDict: Dict, covarianceDataset: pd.DataFrame) -
     for key, value in portfolioWeightsDict.items():
         variance += covarianceDataset.loc[key][key] * (value ** 2)
 
-    for i in range(n-1):
-        for j in range(i+1, n):
+    for i in range(n - 1):
+        for j in range(i + 1, n):
             variance += 2 * portfolioWeightsDict[portfolioKeys[i]] * portfolioWeightsDict[portfolioKeys[j]] * \
                         covarianceDataset.loc[portfolioKeys[i]][portfolioKeys[j]]
 
@@ -57,7 +57,7 @@ def risk_return_dict_generator(instrumentSet: str, portfolioWeightsDicts: List[D
 
 
 def fitfun(x, a, b, c, d):
-    return d + a/(b*x+c)
+    return d + a / (b * x + c)
 
 
 def get_num_files_in_dir(path: str) -> int:

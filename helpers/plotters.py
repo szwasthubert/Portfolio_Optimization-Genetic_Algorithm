@@ -29,10 +29,9 @@ def efficient_frontier_plotter(risk_return_dicts_list: List[Dict[str, List]]):
         #plt.plot(t, help.fitfun(np.array(t), *popt), '-', label='_nolegend_', color=get_plot_color(index*2, 'Paired'))
         plt.legend()
         plt.grid(True)
-        plt.xlabel("Portfolio risk")
+        plt.xlabel("Portfolio volatility")
         plt.ylabel("Expected return")
         plt.title("Markowitz Model Efficient Frontiers")
-        plt.savefig('./plots/frontier/'+str(help.get_num_files_in_dir('./plots/frontier/'))+'.png')
 
     return plt.show()
 
@@ -49,8 +48,6 @@ def plot_fitness_history(config: algo.Config, result: algo.AlgorithmResult):
     plt.grid()
     plt.xlabel("Generation")
     plt.ylabel("Fitness")
-    plt.savefig('./plots/fitnesshist/' + str(help.get_num_files_in_dir('./plots/fitnesshist/')) + '.png')
-
 
 def plot_portfolio_history(config: algo.Config, result: algo.AlgorithmResult):
     MAX_RUNS = config['max_runs']
@@ -65,7 +62,6 @@ def plot_portfolio_history(config: algo.Config, result: algo.AlgorithmResult):
     plt.grid()
     plt.xlabel("Generation")
     plt.ylabel("Portfolio distribution")
-    plt.savefig('./plots/distrib/' + str(help.get_num_files_in_dir('./plots/distrib/')) + '.png')
 
 
 def plot_solution(result: algo.AlgorithmResult):
@@ -78,4 +74,3 @@ def plot_solution(result: algo.AlgorithmResult):
     plt.pie(sizes, labels=labels, autopct='%1.1f%%',
             startangle=90)
     plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-    plt.savefig('./plots/solution/' + str(help.get_num_files_in_dir('./plots/solution/')) + '.png')
