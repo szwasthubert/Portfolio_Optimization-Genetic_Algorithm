@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import listtools
 import numpy as np
 import pandas as pd
@@ -136,10 +135,10 @@ if __name__ == '__main__':
     for i in range(len(instruments)):
         dict_of_lists[instruments[i]] = portfolioWeightsDicts[i*lambda_counts:(i+1)*lambda_counts]
 
-    print(dict_of_lists)
-
     list_of_plotter_dicts = []
     for instrument, list_of_returns in dict_of_lists.items():
         list_of_plotter_dicts.append(helper.risk_return_dict_generator(instrument, list_of_returns, RVMatrices["R_" + instrument], RVMatrices["V_" + instrument]))
 
     plot.efficient_frontier_plotter(list_of_plotter_dicts)
+
+# %%
